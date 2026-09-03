@@ -1,0 +1,294 @@
+<script>
+    /**
+     * @file JavaScript.html
+     * @description Client-side logic for validation, dynamic fields, preview generation, and submission.
+     */
+
+    let currentStep = 1;
+    const totalSteps = 4;
+    let isDirty = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initDynamicFields();
+        trackProgress();
+        preventUnsavedChanges();
+        updateStepper();
+    });
+
+    /**
+     * Navigates to the next section if available.
+     */
+    function nextStep() {
+        if (currentStep < totalSteps) {
+            currentStep++;
+            updateStepper();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    /**
+     * Navigates to the previous section if available.
+     */
+    function prevStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            updateStepper();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    /**
+     * Navigates directly to a specific step (used by breadcrumbs).
+     * @param {number} step - The step number to navigate to.
+     */
+    function goToStep(step) {
+        if (step >= 1 && step <= totalSteps) {
+            currentStep = step;
+            updateStepper();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    /**
+     * Updates the visibility of sections and breadcrumb states.
+     */
+    function updateStepper() {
+        // Update breadcrumb UI
+        for (let i = 1; i <= totalSteps; i++) {
+            const crumb = document.getElementById(`crumb-${i}`);
+            if (i < currentStep) {
+                crumb.className = 'stepper-item completed';
+            } else if (i === currentStep) {
+                crumb.className = 'stepper-item active';
+            } else {
+                crumb.className = 'stepper-item';
+            }
+
+            // Update form step visibility
+            const stepEl = document.getElementById(`step-${i}`);
+            if (i === currentStep) {
+                stepEl.classList.remove('d-none');
+            } else {
+                stepEl.classList.add('d-none');
+            }
+        }
+
+        // Update top progress bar based on step completion
+        const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        document.getElementById('formProgress').style.width = pct + '%';
+    }
+
+    /**
+     * Initializes event listeners for dynamic fields (Other/Has Issue/Yes wraps).
+     */
+    function initDynamicFields() {
+        // Radio buttons with 'data-target' built for the new 3D toggles
+        document.querySelectorAll('input[type=radio][data-target]').forEach(triggerRadio => {
+            const radios = document.querySelectorAll(`input[name="${triggerRadio.name}"]`);
+            radios.forEach(r => {
+                r.addEventListener('change', (e) => {
+                    const targetEl = document.getElementById(triggerRadio.getAttribute('data-target'));
+                    if (!targetEl) return;
+                    
+                    const inputField = targetEl.querySelector('input');
+                    if (triggerRadio.checked) {
+                        targetEl.classList.remove('d-none');
+                    } else {
+                        targetEl.classList.add('d-none');
+                        if (inputField) inputField.value = '';
+                    }
+                });
+            });
+        });
+
+        // Fallback keeping original logic intact for any generic standard selects left behind
+        document.querySelectorAll('select.dynamic-select').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const targetEl = document.getElementById(select.getAttribute('data-target'));
+                if (!targetEl) return;
+                const inputField = targetEl.querySelector('input');
+                if (e.target.value === 'Has Issue' || e.target.value === 'Yes') {
+                    targetEl.classList.remove('d-none');
+                } else {
+                    targetEl.classList.add('d-none');
+                    if (inputField) inputField.value = '';
+                }
+            });
+        });
+    }
+
+    /**
+     * Marks the form as dirty whenever input is detected.
+     */
+    function trackProgress() {
+        document.getElementById('amcForm').addEventListener('input', () => {
+            isDirty = true;
+        });
+    }
+
+    /**
+     * Warns user if they try to leave with unsaved changes.
+     */
+    function preventUnsavedChanges() {
+        let isSubmitting = false;
+        document.getElementById('amcForm').addEventListener('submit', () => isSubmitting = true);
+        window.addEventListener('beforeunload', (e) => {
+            if (!isSubmitting && isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    }
+
+    /**
+     * Opens Preview Modal while populating the template.
+     */
+    function handlePreview() {
+        populateTemplate();
+        const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+        previewModal.show();
+    }
+
+    /**
+     * Reads form data and injects it into the included Template.html (PDF Layout).
+     */
+    function populateTemplate() {
+        const formData = getFormData();
+        
+        // General Section
+        document.getElementById('tpl-pms-month').innerText = formData['PMS Month'] || '';
+        document.getElementById('tpl-cust-name').innerText = formData['Customer Name'] || '';
+        document.getElementById('tpl-address').innerText = formData['Address'] || '';
+        document.getElementById('tpl-visit-date').innerText = formData['Visit Date'] || '';
+        document.getElementById('tpl-eng-name').innerText = formData['Engineer Name'] || '';
+        
+        const training = formData['Training Done'] === 'Yes' ? 'Yes' : 'No';
+        document.getElementById('tpl-training').innerText = formData['Training Done'] ? training : '';
+        document.getElementById('tpl-machine-prob').innerText = formData['Pit Site Issues'] || '';
+
+        // Wheel Alignment
+        document.getElementById('tpl-wa-make').innerText = formData['WA Make & Model'] || '';
+        document.getElementById('tpl-wa-pn').innerText = formData['WA EB Main PN(V)'] || '';
+        document.getElementById('tpl-wa-ne').innerText = formData['WA EB Main NE(V)'] || '';
+        document.getElementById('tpl-wa-pe').innerText = formData['WA EB Main PE(V)'] || '';
+        
+        document.getElementById('tpl-ups-chk').innerText = formData['WA UPS Checked'] || '';
+        document.getElementById('tpl-ups-pn').innerText = formData['WA O/P Voltage'] || ''; // mapped to PN column in template layout
+        
+        document.getElementById('tpl-wall-broken').innerText = formData['WA Wall Socket Broken'] || '';
+        const sensor = formData['WA Sensor Head Condition'] === 'Has Issue' ? formData['WA Sensor Remarks'] : formData['WA Sensor Head Condition'];
+        document.getElementById('tpl-sensor').innerText = sensor || '';
+        document.getElementById('tpl-grabber').innerText = formData['WA Grabber Condition'] || '';
+        document.getElementById('tpl-wa-targets').innerText = formData['WA Targets Cleaned'] || '';
+        const clamps = formData['WA Clamps Condition'] === 'Has Issue' ? formData['WA Clamps Remarks'] : formData['WA Clamps Condition'];
+        document.getElementById('tpl-wa-clamps').innerText = clamps || '';
+        document.getElementById('tpl-wa-tt-clean').innerText = formData['WA Rear TT Cleaned'] || '';
+        const roc = formData['WA ROC Condition'] === 'Has Issue' ? formData['WA ROC Remarks'] : formData['WA ROC Condition'];
+        document.getElementById('tpl-wa-roc').innerText = roc || '';
+        const locks = formData['WA Lock Condition'] === 'Has Issue' ? formData['WA Lock Remarks'] : formData['WA Lock Condition'];
+        document.getElementById('tpl-wa-locks').innerText = locks || '';
+        
+        document.getElementById('tpl-safety-belt').innerText = formData['WA Safety Belt Used'] || '';
+        document.getElementById('tpl-chokes').innerText = formData['WA Wheel Chokes Used'] || '';
+        document.getElementById('tpl-roc-proc').innerText = formData['WA ROC Procedure Done'] || '';
+        document.getElementById('tpl-brake-lock').innerText = formData['WA Brake Lock Castor'] || '';
+        const printer = formData['WA Printer Condition'] === 'Has Issue' ? formData['WA Printer Remarks'] : formData['WA Printer Condition'];
+        document.getElementById('tpl-printer').innerText = printer || '';
+        document.getElementById('tpl-wa-machine-cl').innerText = formData['WA Machine Cleaned'] || '';
+        document.getElementById('tpl-sunlight').innerText = formData['WA Sunlight Affecting'] || '';
+        document.getElementById('tpl-temp-files').innerText = formData['WA Temp Files Deleted'] || '';
+        document.getElementById('tpl-wa-tech-tr').innerText = formData['WA Tech Training Given'] || '';
+
+        // Wheel Balancing
+        document.getElementById('tpl-wb-pn').innerText = formData['WB Wall Socket PN(V)'] || '';
+        document.getElementById('tpl-wb-ne').innerText = formData['WB Wall Socket NE(V)'] || '';
+        document.getElementById('tpl-wb-make').innerText = formData['WB Make & Model'] || '';
+        document.getElementById('tpl-wb-quick').innerText = formData['WB Quick Release Condition'] || '';
+        document.getElementById('tpl-wb-cup').innerText = formData['WB Plastic Cup Condition'] || '';
+        document.getElementById('tpl-wb-gauge').innerText = formData['WB Gauge Condition'] || '';
+        document.getElementById('tpl-wb-clean').innerText = formData['WB Cleaning Done'] || '';
+        document.getElementById('tpl-wb-rem').innerText = formData['WB Remarks'] || '';
+
+        // Pit / Lift
+        document.getElementById('tpl-pit-slip').innerText = formData['Pit Rear Slip Plate Condition'] || '';
+        document.getElementById('tpl-pit-slip-cl').innerText = formData['Pit Rear Slip Plate Cleaned'] || '';
+        const pitTt = formData['Pit TT Condition'] === 'Has Issue' ? formData['Pit TT Remarks'] : formData['Pit TT Condition'];
+        document.getElementById('tpl-pit-tt').innerText = pitTt || '';
+        document.getElementById('tpl-pit-tt-cl').innerText = formData['Pit Rear TT Cleaned'] || '';
+        document.getElementById('tpl-pit-level').innerText = formData['Pit TT Leveling'] || '';
+        document.getElementById('tpl-pit-issues').innerText = formData['Pit Site Issues'] || '';
+        
+        document.getElementById('tpl-pit-water').innerText = formData['Pit Water Level'] || '';
+        document.getElementById('tpl-pit-oil').innerText = formData['Pit Oil Level'] || '';
+        document.getElementById('tpl-pit-voltage').innerText = formData['Pit Voltage'] || '';
+
+        // Signature area
+        document.getElementById('tpl-tech-sign').innerText = formData['Technician Name'] || '';
+    }
+
+    /**
+     * Extracts all values from the form.
+     * @returns {Object} JSON object of form data.
+     */
+    function getFormData() {
+        const form = document.getElementById('amcForm');
+        const formData = new FormData(form);
+        const data = {};
+        for (let [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        return data;
+    }
+
+    /**
+     * Submits the JSON data and the raw Template HTML string to GAS.
+     */
+    function submitForm() {
+        const overlay = document.getElementById('loadingOverlay');
+        overlay.classList.remove('d-none');
+        
+        const previewModalEl = document.getElementById('previewModal');
+        const modalInstance = bootstrap.Modal.getInstance(previewModalEl);
+        modalInstance.hide();
+
+        const formData = getFormData();
+        
+        // Grab the populated HTML of the template wrapper
+        // Including the styles block present in Template.html so the PDF renderer catches it
+        const htmlElement = document.getElementById('templateWrapper');
+        const rawHtmlContent = htmlElement.innerHTML;
+        
+        google.script.run
+            .withSuccessHandler(onSuccess)
+            .withFailureHandler(onFailure)
+            .processFormSubmission(formData, rawHtmlContent);
+    }
+
+    function onSuccess(response) {
+        document.getElementById('loadingOverlay').classList.add('d-none');
+        if (response.status === 'success') {
+            showToast('Form Submitted & PDF Saved successfully!', 'text-bg-success');
+            document.getElementById('amcForm').reset();
+            
+            // Reset navigation UI and tracking state
+            isDirty = false;
+            currentStep = 1;
+            updateStepper();
+        } else {
+            showToast('Error: ' + response.message, 'text-bg-danger');
+        }
+    }
+
+    function onFailure(error) {
+        document.getElementById('loadingOverlay').classList.add('d-none');
+        showToast('Submission Failed: ' + error.message, 'text-bg-danger');
+    }
+
+    function showToast(message, colorClass) {
+        const toastEl = document.getElementById('appToast');
+        toastEl.className = `toast align-items-center border-0 ${colorClass}`;
+        document.getElementById('toastMsg').innerText = message;
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+</script>

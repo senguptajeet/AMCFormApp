@@ -1,0 +1,139 @@
+<!-- Wrapper so we can grab the exact innerHTML for the PDF parser -->
+<div id="templateWrapper" style="display: block; width: 100%;">
+    <style>
+    /* Enforce pure black text across all preview/PDF elements to override dark mode inheritance */
+    #templateWrapper, #templateWrapper * {
+        color: #000000 !important;
+    }
+
+    @page { size: A4; margin: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
+    .pdf-body {
+        margin: 0; padding: 0; font-family: Arial, sans-serif;
+        background-color: transparent; display: flex;
+        justify-content: center; align-items: flex-start;
+    }
+    .page-container {
+        width: 210mm; height: 297mm; background-color: white;
+        padding: 12mm 15mm; box-shadow: none; display: flex; flex-direction: column;
+    }
+    header { width: 100%; margin-bottom: 5px; display: flex; border: 1px solid black; align-items: stretch; }
+    .main-title { text-align: center; font-weight: bold; font-size: 13pt; margin-bottom: 0; border: none; width: 70%; display: flex; align-items: center; justify-content: center; padding: 6px 10px; }
+    .pms-data-last-month { font-weight: bold; font-size: 10px; width: 30%; display: flex; align-items: flex-start; justify-content: flex-end; border-left: 1px solid black; padding: 4px 8px; text-align: right; }
+    main { width: 100%; flex-grow: 1; display: flex; flex-direction: column; }
+    .visit-checklist-table { width: 100%; height: 100%; border-collapse: collapse; font-size: 9.5px; line-height: 1.1; border: 1px solid black; }
+    .visit-checklist-table td { border: 1px solid black; padding: 2px 4px; vertical-align: middle; }
+    .visit-checklist-table td:first-child { border-left: none; }
+    .visit-checklist-table td:last-child { border-right: none; }
+    .visit-checklist-table tr:first-child td { border-top: none; }
+    .visit-checklist-table tr:last-child td { border-bottom: none; }
+    .visit-checklist-table td.col-num { width: 20px; text-align: center; white-space: nowrap; font-weight: bold; }
+    .visit-checklist-table td.col-label-merged { text-align: left; }
+    .visit-checklist-table td.col-input { width: 25%; padding: 0; text-align: center; font-weight: bold; color: #000000; } /* Data styling */
+    .op-voltage-label { display: inline-block; width: 120px; text-align: right; margin-right: -80px; }
+    .row-header { font-weight: bold; background-color: #fcfcfc; }
+    .row-header td { padding: 4px 4px; }
+    .pms-subgrid { display: grid; grid-template-columns: repeat(3, 1fr); height: 100%; min-height: 18px; text-align: center; }
+    .pms-subgrid div { display: flex; align-items: center; justify-content: center; color: #000000; }
+    .pms-cols-header .pms-subgrid div { font-weight: bold; color: #000000;}
+    .pms-cols-header .pms-subgrid div:not(:last-child) { border-right: 1px solid black; }
+    .voltage-inputs { height: 100%; }
+    .voltage-inputs div { height: 100%; min-height: 18px; }
+    .voltage-inputs div:not(:last-child) { border-right: 1px solid black; }
+    .pms-cols-content-spanning-row-start .voltage-inputs-spanning { grid-template-rows: 1fr; height: 100%; }
+    .row-pit-7-water td.col-input, .row-pit-7-oil td.col-input { border-right: none; border-left: none; }
+    .row-pit-7-water td.col-input:first-of-type, .row-pit-7-oil td.col-input:first-of-type { border-left: 1px solid black; }
+    .row-pit-7-water td.col-input:last-of-type, .row-pit-7-oil td.col-input:last-of-type { border-right: none; }
+    .pms-cols-content-spanning-row-start .voltage-inputs-spanning, .row-pit-7-water .col-input.pms-cols-content-spanning-row-start { height: 38px; }
+    .pms-cols-content-spanning-row-start div:not(:last-child), .pms-cols-content-spanning-row-start .voltage-inputs-spanning div:not(:last-child) { border-right: 1px solid black; }
+    .row-pit-7-oil td.col-input.pms-cols-content-spanning-row-end { display: none; }
+    .row-bottom td.col-label-merged { font-weight: bold; font-size: 11px; padding: 6px 4px; }
+    .bold-col { font-weight: bold; }
+    </style>
+    
+    <div class="pdf-body">
+        <div class="page-container">
+            <header>
+                <div class="main-title">CONTRACT AMC VISIT CHECK LIST</div>
+                <div class="pms-data-last-month">PMS DATA LAST MONTH- <span id="tpl-pms-month" style="color:#000000; margin-left: 5px;"></span></div>
+            </header>
+
+            <main>
+                <table class="visit-checklist-table">
+                    <tbody>
+                        <tr class="row-1"><td class="col-num">1</td><td class="col-label">Name of the Contract customer</td><td class="col-input" id="tpl-cust-name"></td></tr>
+                        <tr class="row-2"><td class="col-num">2</td><td class="col-label">Place/Town (Address)</td><td class="col-input" id="tpl-address"></td></tr>
+                        <tr class="row-3"><td class="col-num">3</td><td class="col-label">Date of visit</td><td class="col-input" id="tpl-visit-date"></td></tr>
+                        <tr class="row-4"><td class="col-num">4</td><td class="col-label">Name of the Engr. Who visited</td><td class="col-input" id="tpl-eng-name"></td></tr>
+                        <tr class="row-5"><td class="col-num">5</td><td class="col-label">Engr. Time in:................. Time Out:.................</td><td class="col-input"></td></tr>
+                        <tr class="row-6"><td class="col-num">6</td><td class="col-label">Training given to Technician Clean Machine Everyday & (Very Important)</td><td class="col-input" id="tpl-training"></td></tr>
+                        <tr class="row-8"><td class="col-num">7</td><td class="col-label">Machine Problem Any Issue inform that time service Engineer (Send videos & Photos)</td><td class="col-input" id="tpl-machine-prob"></td></tr>
+
+                        <tr class="row-header row-wa-header">
+                            <td class="col-label col-label-merged" colspan="2">WHEEL ALIGNMENT - MAKE & MODEL <span id="tpl-wa-make" style="color:#000000; margin-left:10px;"></span></td>
+                            <td class="col-input pms-cols-header"><div class="pms-subgrid"><div>PN(V)</div><div>NE(V)</div><div>PE(v)</div></div></td>
+                        </tr>
+
+                        <tr class="row-wa-1">
+                            <td class="col-num">1</td><td class="col-label">EB MAIN LINE : Wall socket AC voltage and earth leakage</td>
+                            <td class="col-input"><div class="pms-subgrid voltage-inputs"><div id="tpl-wa-pn"></div><div id="tpl-wa-ne"></div><div id="tpl-wa-pe"></div></div></td>
+                        </tr>
+                        <tr class="row-wa-2">
+                            <td class="col-num">2</td><td class="col-label">UPS Condition checked or not:- <span id="tpl-ups-chk" style="color:#000000; font-weight:bold;"></span> <span class="op-voltage-label">O/P VOLTAGE</span></td>
+                            <td class="col-input"><div class="pms-subgrid voltage-inputs"><div id="tpl-ups-pn"></div><div></div><div></div></div></td>
+                        </tr>
+                        <tr class="row-wa-3"><td class="col-num">3</td><td class="col-label">Any wall socket burnt/Broken (Yes/No)</td><td class="col-input" id="tpl-wall-broken"></td></tr>
+                        <tr class="row-wa-4"><td class="col-num">4</td><td class="col-label">Sensor Head / Target conditions (Good / Any issue like crack or damage noticed- explain)</td><td class="col-input" id="tpl-sensor"></td></tr>
+                        <tr class="row-wa-5"><td class="col-num">5</td><td class="col-label">Grabber Assy Dual End / Grabber pin Condition</td><td class="col-input" id="tpl-grabber"></td></tr>
+                        <tr class="row-wa-6"><td class="col-num">6</td><td class="col-label">All the Targets in cleaned condition (Yes/No)</td><td class="col-input" id="tpl-wa-targets"></td></tr>
+                        <tr class="row-wa-7"><td class="col-num">7</td><td class="col-label">Wheel clamps/Adaptor condition (Good / Any issue found?)</td><td class="col-input" id="tpl-wa-clamps"></td></tr>
+                        <tr class="row-wa-8"><td class="col-num">8</td><td class="col-label">Cleaning of rear Turn table done (Yes/No)</td><td class="col-input" id="tpl-wa-tt-clean"></td></tr>
+                        <tr class="row-wa-9"><td class="col-num">9</td><td class="col-label">Condition of ROC plates or turn plate (Good / Any issue found)</td><td class="col-input" id="tpl-wa-roc"></td></tr>
+                        <tr class="row-wa-10"><td class="col-num">10</td><td class="col-label">Condition of steering lock ,Brake lock & KIT Padell TT (Good / Any issue found)</td><td class="col-input" id="tpl-wa-locks"></td></tr>
+                        <tr class="row-wa-11"><td class="col-num">11</td><td class="col-label">Is Safety Belt being used for wheel clamp sensor (Yes/No)</td><td class="col-input" id="tpl-safety-belt"></td></tr>
+                        <tr class="row-wa-12"><td class="col-num">12</td><td class="col-label">Using the Wheel Chokes (Stopper) for every cars (Yes/No)</td><td class="col-input" id="tpl-chokes"></td></tr>
+                        <tr class="row-wa-13"><td class="col-num">13</td><td class="col-label">Doing complete ROC procedure (Yes/No)</td><td class="col-input" id="tpl-roc-proc"></td></tr>
+                        <tr class="row-wa-14"><td class="col-num">14</td><td class="col-label">During the castor swing whether technician applying the brake lock & steering lock (Yes/No)</td><td class="col-input" id="tpl-brake-lock"></td></tr>
+                        <tr class="row-wa-15"><td class="col-num">15</td><td class="col-label">Printer working condition (Good / Any issue found)</td><td class="col-input" id="tpl-printer"></td></tr>
+                        <tr class="row-wa-16"><td class="col-num">16</td><td class="col-label">Checked & Cleaned the WA (CPU,Camera Boom Assy,Console) / cameras ( if required) - (Yes/No)</td><td class="col-input" id="tpl-wa-machine-cl"></td></tr>
+                        <tr class="row-wa-17"><td class="col-num">17</td><td class="col-label">Any sun light/rain water entering inside service bay and affecting WA&WB Machine (Yes/No)</td><td class="col-input" id="tpl-sunlight"></td></tr>
+                        <tr class="row-wa-18"><td class="col-num">18</td><td class="col-label">Check Temp files available in system and the same to be deleted (Yes/No)</td><td class="col-input" id="tpl-temp-files"></td></tr>
+                        <tr class="row-wa-19"><td class="col-num">19</td><td class="col-label">Training given to Technician Clean Power Fuse , Camera fuse, Ram, Cpu & Camera Cable (Only Breakdown)</td><td class="col-input" id="tpl-wa-tech-tr"></td></tr>
+
+                        <tr class="row-header row-wb-header">
+                            <td class="col-label col-label-merged" colspan="2">WHEEL BALANCING - Wall socket AC voltage</td>
+                            <td class="col-input pms-cols-header"><div class="pms-subgrid"><div>PN(V)</div><div>NE(V)</div><div>PE(v)</div></div></td>
+                        </tr>
+
+                        <tr class="row-wb-1">
+                            <td class="col-num">1</td><td class="col-label">MAKE & MODEL</td>
+                            <td class="col-input"><div class="pms-subgrid voltage-inputs"><div id="tpl-wb-pn"></div><div id="tpl-wb-ne"></div><div></div></div><span id="tpl-wb-make"></span></td>
+                        </tr>
+                        <tr class="row-wb-2"><td class="col-num">2</td><td class="col-label">Is the quick release clamps and cones in good condition (Yes/No)</td><td class="col-input" id="tpl-wb-quick"></td></tr>
+                        <tr class="row-wb-3"><td class="col-num">3</td><td class="col-label">Is the wheel locking plastic cup and its bead ring in good condition (Yes/No)</td><td class="col-input" id="tpl-wb-cup"></td></tr>
+                        <tr class="row-wb-4"><td class="col-num">4</td><td class="col-label">Is the distance / Width and Dia Gauge working In good condition (Yes/No)</td><td class="col-input" id="tpl-wb-gauge"></td></tr>
+                        <tr class="row-wb-5"><td class="col-num">5</td><td class="col-label">Cleaning done WB inside / spindle shaft (Yes/No)</td><td class="col-input" id="tpl-wb-clean"></td></tr>
+                        <tr class="row-wb-6"><td class="col-num">6</td><td class="col-label">Anyother specific remarks about WB,Explain here</td><td class="col-input" id="tpl-wb-rem"></td></tr>
+
+                        <tr class="row-header row-pit-header"><td class="col-label col-label-merged" colspan="2">PIT TYPE / LIFT HEALTH</td><td class="col-input"></td></tr>
+                        <tr class="row-pit-1"><td class="col-num">1</td><td class="col-label">Is the Rear Slip Plates in good condition (Yes/No)</td><td class="col-input" id="tpl-pit-slip"></td></tr>
+                        <tr class="row-pit-2"><td class="col-num">2</td><td class="col-label">Cleaning of rear slip plates done (Yes/No)</td><td class="col-input" id="tpl-pit-slip-cl"></td></tr>
+                        <tr class="row-pit-3"><td class="col-num">3</td><td class="col-label">Condition of Turn table (Good / Any issue found )</td><td class="col-input" id="tpl-pit-tt"></td></tr>
+                        <tr class="row-pit-4"><td class="col-num">4</td><td class="col-label">Cleaning of rear Turn table done (Yes/No)</td><td class="col-input" id="tpl-pit-tt-cl"></td></tr>
+                        <tr class="row-pit-5"><td class="col-num">5</td><td class="col-label">Turn table area leveling</td><td class="col-input" id="tpl-pit-level"></td></tr>
+                        <tr class="row-pit-6"><td class="col-num">6</td><td class="col-label">Pls mention if Any issues found at in site or machinery and upkeep of service bay & machines</td><td class="col-input" id="tpl-pit-issues"></td></tr>
+                        <tr class="row-pit-7-water">
+                            <td class="col-num">7</td><td class="col-label">Lift water level check</td>
+                            <td class="col-input pms-cols-content-spanning-row-start"><div class="pms-subgrid voltage-inputs-spanning"><div id="tpl-pit-water"></div><div id="tpl-pit-oil"></div><div id="tpl-pit-voltage"></div></div></td>
+                        </tr>
+                        <tr class="row-pit-7-oil"><td class="col-num">7</td><td class="col-label">Lift oil level check</td><td class="col-input pms-cols-content-spanning-row-end"></td></tr>
+                        <tr class="row-pit-8"><td class="col-num">8</td><td class="col-label">Lift voltage chjeck</td><td class="col-input"></td></tr>
+
+                        <tr class="row-bottom row-signature"><td class="col-label-merged bold-col" colspan="2">Signature of Technician with Number</td><td class="col-input" id="tpl-tech-sign"></td></tr>
+                        <tr class="row-bottom row-note"><td class="col-label-merged bold-col" colspan="2">Note : All the check points need to be filled without leaving any blank</td><td class="col-input"></td></tr>
+                    </tbody>
+                </table>
+            </main>
+        </div>
+    </div>
+</div>

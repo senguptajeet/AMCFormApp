@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AMC Inspection Form</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <?!= include('Styles'); ?>
+</head>
+<body class="app-bg text-light">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+        <h4 class="mt-3 text-white fw-medium">Processing Data & Generating PDF...</h4>
+    </div>
+
+    <!-- Sticky Header -->
+    <header class="sticky-top glass-header py-3 mb-4 shadow-lg">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-white fw-semibold"><span class="material-icons align-middle text-primary me-2 mb-1">assignment</span>AMC Inspection Form</h4>
+            <div class="progress w-25 rounded-pill shadow-sm" style="height: 10px; background: rgba(255,255,255,0.1);">
+                <div id="formProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mb-5">
+        <!-- Breadcrumb Navigation -->
+        <div class="stepper-wrapper mb-4">
+            <div class="stepper-item active" id="crumb-1" onclick="goToStep(1)">
+                <div class="step-counter">1</div>
+                <div class="step-name">General</div>
+            </div>
+            <div class="stepper-item" id="crumb-2" onclick="goToStep(2)">
+                <div class="step-counter">2</div>
+                <div class="step-name">Alignment</div>
+            </div>
+            <div class="stepper-item" id="crumb-3" onclick="goToStep(3)">
+                <div class="step-counter">3</div>
+                <div class="step-name">Balancing</div>
+            </div>
+            <div class="stepper-item" id="crumb-4" onclick="goToStep(4)">
+                <div class="step-counter">4</div>
+                <div class="step-name">Pit / Lift</div>
+            </div>
+        </div>
+
+        <form id="amcForm">
+            
+            <!-- SECTION 1: GENERAL -->
+            <div class="card glass-card mb-4 form-step" id="step-1">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-semibold text-white"><span class="material-icons align-middle me-2 text-primary">info</span>Section 1: General Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" class="form-control" name="Customer Name" id="customerName">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Visit Date</label>
+                            <input type="date" class="form-control" name="Visit Date" id="visitDate">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="Address" id="address" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Engineer's Name</label>
+                            <input type="text" class="form-control" name="Engineer Name" id="engineerName">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Technician Name</label>
+                            <input type="text" class="form-control" name="Technician Name" id="technicianName">
+                        </div>
+
+                        <!-- 3D Toggle Group Replacements -->
+                        <div class="col-md-6">
+                            <label class="form-label w-100">Alignment Done</label>
+                            <div class="toggle-group-3d" role="group">
+                                <div>
+                                    <input type="radio" class="btn-check toggle-yes" name="Alignment Done" id="alignYes" value="Yes">
+                                    <label class="toggle-btn-3d yes-btn" for="alignYes">
+                                        YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-no" name="Alignment Done" id="alignNo" value="No">
+                                    <label class="toggle-btn-3d" for="alignNo">
+                                        <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-other" name="Alignment Done" id="alignOther" value="Other" data-target="alignRemarksWrap">
+                                    <label class="toggle-btn-3d" for="alignOther">
+                                        <span class="icon-circle"><i class="material-icons">more_horiz</i></span> OTHER
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="alignRemarksWrap" class="mt-3 d-none">
+                                <input type="text" class="form-control form-control-sm" name="Alignment Remarks" id="alignRemarks" placeholder="Specify other...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label w-100">Balancing Done</label>
+                            <div class="toggle-group-3d" role="group">
+                                <div>
+                                    <input type="radio" class="btn-check toggle-yes" name="Balancing Done" id="balYes" value="Yes">
+                                    <label class="toggle-btn-3d yes-btn" for="balYes">
+                                        YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-no" name="Balancing Done" id="balNo" value="No">
+                                    <label class="toggle-btn-3d" for="balNo">
+                                        <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-other" name="Balancing Done" id="balOther" value="Other" data-target="balRemarksWrap">
+                                    <label class="toggle-btn-3d" for="balOther">
+                                        <span class="icon-circle"><i class="material-icons">more_horiz</i></span> OTHER
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="balRemarksWrap" class="mt-3 d-none">
+                                <input type="text" class="form-control form-control-sm" name="Balancing Remarks" id="balRemarks" placeholder="Specify other...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label w-100">PDI CAR CHECK</label>
+                            <div class="toggle-group-3d" role="group">
+                                <div>
+                                    <input type="radio" class="btn-check toggle-yes" name="PDI Car Check" id="pdiYes" value="Yes">
+                                    <label class="toggle-btn-3d yes-btn" for="pdiYes">
+                                        YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-no" name="PDI Car Check" id="pdiNo" value="No">
+                                    <label class="toggle-btn-3d" for="pdiNo">
+                                        <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-other" name="PDI Car Check" id="pdiOther" value="Other" data-target="pdiRemarksWrap">
+                                    <label class="toggle-btn-3d" for="pdiOther">
+                                        <span class="icon-circle"><i class="material-icons">more_horiz</i></span> OTHER
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="pdiRemarksWrap" class="mt-3 d-none">
+                                <input type="text" class="form-control form-control-sm" name="PDI Remarks" id="pdiRemarks" placeholder="Specify other...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label w-100">MACHINE CLEANING</label>
+                            <div class="toggle-group-3d" role="group">
+                                <div>
+                                    <input type="radio" class="btn-check toggle-yes" name="Machine Cleaning" id="cleanYes" value="Yes">
+                                    <label class="toggle-btn-3d yes-btn" for="cleanYes">
+                                        YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-no" name="Machine Cleaning" id="cleanNo" value="No">
+                                    <label class="toggle-btn-3d" for="cleanNo">
+                                        <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-other" name="Machine Cleaning" id="cleanOther" value="Other" data-target="cleanRemarksWrap">
+                                    <label class="toggle-btn-3d" for="cleanOther">
+                                        <span class="icon-circle"><i class="material-icons">more_horiz</i></span> OTHER
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="cleanRemarksWrap" class="mt-3 d-none">
+                                <input type="text" class="form-control form-control-sm" name="Cleaning Remarks" id="cleanRemarks" placeholder="Specify other...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label w-100">Training Done</label>
+                            <div class="toggle-group-3d" role="group">
+                                <div>
+                                    <input type="radio" class="btn-check toggle-yes" name="Training Done" id="trainYes" value="Yes">
+                                    <label class="toggle-btn-3d yes-btn" for="trainYes">
+                                        YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-no" name="Training Done" id="trainNo" value="No">
+                                    <label class="toggle-btn-3d" for="trainNo">
+                                        <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Salesman Name</label>
+                            <input type="text" class="form-control" name="Salesman Name">
+                        </div>
+
+                        <!-- Aesthetic Sliders -->
+                        <div class="col-md-4">
+                            <label class="form-label">Dress (1-5)</label>
+                            <div class="d-flex align-items-center slider-container px-3 py-2">
+                                <span class="text-muted small fw-bold me-3">1</span>
+                                <input type="range" class="form-range custom-range flex-grow-1" name="Dress (1-5)" min="1" max="5" value="3" oninput="this.parentElement.querySelector('.slider-badge').innerText = this.value">
+                                <span class="text-muted small fw-bold ms-3 me-3">5</span>
+                                <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg slider-badge" style="width: 30px; height: 30px; font-size: 1rem;">3</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Behavior (1-5)</label>
+                            <div class="d-flex align-items-center slider-container px-3 py-2">
+                                <span class="text-muted small fw-bold me-3">1</span>
+                                <input type="range" class="form-range custom-range flex-grow-1" name="Behavior (1-5)" min="1" max="5" value="3" oninput="this.parentElement.querySelector('.slider-badge').innerText = this.value">
+                                <span class="text-muted small fw-bold ms-3 me-3">5</span>
+                                <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg slider-badge" style="width: 30px; height: 30px; font-size: 1rem;">3</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Experience (1-5)</label>
+                            <div class="d-flex align-items-center slider-container px-3 py-2">
+                                <span class="text-muted small fw-bold me-3">1</span>
+                                <input type="range" class="form-range custom-range flex-grow-1" name="Experience (1-5)" min="1" max="5" value="3" oninput="this.parentElement.querySelector('.slider-badge').innerText = this.value">
+                                <span class="text-muted small fw-bold ms-3 me-3">5</span>
+                                <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg slider-badge" style="width: 30px; height: 30px; font-size: 1rem;">3</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">PMS Month (MM-YYYY)</label>
+                            <input type="month" class="form-control" name="PMS Month" id="pmsMonth">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">No of PMS done</label>
+                            <input type="number" class="form-control" name="No of PMS done" id="noOfPmsDone" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-4 pt-4 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <button type="button" class="btn btn-primary px-4 shadow-sm rounded-pill fw-medium" onclick="nextStep()">Next <span class="material-icons align-middle ms-1">arrow_forward</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: WHEEL ALIGNMENT -->
+            <div class="card glass-card mb-4 form-step d-none" id="step-2">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-semibold text-white"><span class="material-icons align-middle me-2 text-primary">settings_suggest</span>Section 2: Wheel Alignment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <label class="form-label">Make & Model</label>
+                            <textarea class="form-control" name="WA Make & Model" id="waMakeModel" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-white">EB MAIN LINE (Wall Socket AC Voltage)</label>
+                            <div class="row">
+                                <div class="col"><input type="number" step="0.1" class="form-control" name="WA EB Main PN(V)" id="waPnV" placeholder="PN(V)"></div>
+                                <div class="col"><input type="number" step="0.1" class="form-control" name="WA EB Main NE(V)" id="waNeV" placeholder="NE(V)"></div>
+                                <div class="col"><input type="number" step="0.1" class="form-control" name="WA EB Main PE(V)" id="waPeV" placeholder="PE(V)"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">UPS Condition Checked</label>
+                            <select class="form-select dynamic-select" name="WA UPS Checked" data-target="upsVolWrap">
+                                <option value="" class="bg-dark text-light">Select...</option>
+                                <option value="Yes" class="bg-dark text-light">Yes</option>
+                                <option value="No" class="bg-dark text-light">No</option>
+                            </select>
+                            <div id="upsVolWrap" class="mt-3 d-none">
+                                <input type="number" step="0.1" class="form-control form-control-sm" name="WA O/P Voltage" id="waUpsV" placeholder="O/P Voltage">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label w-100">Wall Socket Burnt/Broken</label>
+                            <div class="toggle-group-3d" role="group">
+                                <div>
+                                    <input type="radio" class="btn-check toggle-yes" name="WA Wall Socket Broken" id="waWallYes" value="Yes">
+                                    <label class="toggle-btn-3d yes-btn" for="waWallYes">
+                                        YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" class="btn-check toggle-no" name="WA Wall Socket Broken" id="waWallNo" value="No">
+                                    <label class="toggle-btn-3d" for="waWallNo">
+                                        <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Sensor Head / Target Condition</label>
+                            <select class="form-select dynamic-select" name="WA Sensor Head Condition" data-target="sensorRemarkWrap">
+                                <option value="" class="bg-dark text-light">Select...</option>
+                                <option value="Good" class="bg-dark text-light">Good</option>
+                                <option value="Has Issue" class="bg-dark text-light">Has Issue</option>
+                            </select>
+                            <div id="sensorRemarkWrap" class="mt-3 d-none">
+                                <input type="text" class="form-control form-control-sm" name="WA Sensor Remarks" id="waSensorRem" placeholder="Remarks...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Grabber Assy Dual End / Pin Condition</label>
+                            <input type="text" class="form-control" name="WA Grabber Condition" id="waGrabber">
+                        </div>
+
+                        <!-- Fast Yes/No mappings for WA upgraded to 3D toggles -->
+                        <script>
+                            const waYesNoFields = [
+                                {label: 'All Targets Cleaned', name: 'WA Targets Cleaned'},
+                                {label: 'Rear Turn Table Cleaned', name: 'WA Rear TT Cleaned'},
+                                {label: 'Safety Belt Used', name: 'WA Safety Belt Used'},
+                                {label: 'Wheel Chokes Used', name: 'WA Wheel Chokes Used'},
+                                {label: 'Complete ROC Procedure', name: 'WA ROC Procedure Done'},
+                                {label: 'Brake Lock During Castor Swing', name: 'WA Brake Lock Castor'},
+                                {label: 'WA Machine Checked & Cleaned', name: 'WA Machine Cleaned'},
+                                {label: 'Sunlight/Rain Affecting Machine', name: 'WA Sunlight Affecting'},
+                                {label: 'Temp Files Deleted', name: 'WA Temp Files Deleted'},
+                                {label: 'Technician Training Given', name: 'WA Tech Training Given'}
+                            ];
+                            waYesNoFields.forEach(f => {
+                                const idBase = f.name.replace(/\s+/g,'');
+                                document.write(`
+                                <div class="col-md-4">
+                                    <label class="form-label w-100">${f.label}</label>
+                                    <div class="toggle-group-3d" role="group">
+                                        <div>
+                                            <input type="radio" class="btn-check toggle-yes" name="${f.name}" id="${idBase}Yes" value="Yes">
+                                            <label class="toggle-btn-3d yes-btn" for="${idBase}Yes">
+                                                YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <input type="radio" class="btn-check toggle-no" name="${f.name}" id="${idBase}No" value="No">
+                                            <label class="toggle-btn-3d" for="${idBase}No">
+                                                <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>`);
+                            });
+                        </script>
+
+                        <!-- Fast Good/Issue mappings for WA (kept as dynamic dropdowns to maintain integrity) -->
+                        <script>
+                            const waIssueFields = [
+                                {label: 'Wheel Clamps / Adaptor', name: 'WA Clamps Condition', rem: 'WA Clamps Remarks'},
+                                {label: 'ROC Plate / Turn Plate', name: 'WA ROC Condition', rem: 'WA ROC Remarks'},
+                                {label: 'Steering / Brake Lock / KIT', name: 'WA Lock Condition', rem: 'WA Lock Remarks'},
+                                {label: 'Printer Condition', name: 'WA Printer Condition', rem: 'WA Printer Remarks'}
+                            ];
+                            waIssueFields.forEach((f, idx) => {
+                                document.write(`
+                                <div class="col-md-6">
+                                    <label class="form-label">${f.label} Condition</label>
+                                    <select class="form-select dynamic-select" name="${f.name}" id="${f.name.replace(/\s+/g,'')}" data-target="waIssWrap${idx}">
+                                        <option value="" class="bg-dark text-light">Select...</option><option value="Good" class="bg-dark text-light">Good</option><option value="Has Issue" class="bg-dark text-light">Has Issue</option>
+                                    </select>
+                                    <div id="waIssWrap${idx}" class="mt-3 d-none">
+                                        <input type="text" class="form-control form-control-sm" name="${f.rem}" id="${f.rem.replace(/\s+/g,'')}" placeholder="Remarks...">
+                                    </div>
+                                </div>`);
+                            });
+                        </script>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4 pt-4 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <button type="button" class="btn btn-outline-light px-4 rounded-pill fw-medium" onclick="prevStep()"><span class="material-icons align-middle me-1">arrow_back</span> Previous</button>
+                        <button type="button" class="btn btn-primary px-4 shadow-sm rounded-pill fw-medium" onclick="nextStep()">Next <span class="material-icons align-middle ms-1">arrow_forward</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: WHEEL BALANCING -->
+            <div class="card glass-card mb-4 form-step d-none" id="step-3">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-semibold text-white"><span class="material-icons align-middle me-2 text-primary">tire_repair</span>Section 3: Wheel Balancing</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-white">Wall Socket Voltage</label>
+                            <div class="row">
+                                <div class="col"><input type="number" step="0.1" class="form-control" name="WB Wall Socket PN(V)" id="wbPnV" placeholder="PN(V)"></div>
+                                <div class="col"><input type="number" step="0.1" class="form-control" name="WB Wall Socket NE(V)" id="wbNeV" placeholder="NE(V)"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Make & Model</label>
+                            <textarea class="form-control" name="WB Make & Model" id="wbMakeModel" rows="1"></textarea>
+                        </div>
+                        
+                        <script>
+                            const wbYesNoFields = [
+                                {label: 'Quick Release Clamp Condition', name: 'WB Quick Release Condition'},
+                                {label: 'Plastic Cup & Bead Ring', name: 'WB Plastic Cup Condition'},
+                                {label: 'Distance / Width / Dia Gauge', name: 'WB Gauge Condition'},
+                                {label: 'Cleaning Done', name: 'WB Cleaning Done'}
+                            ];
+                            wbYesNoFields.forEach(f => {
+                                const idBase = f.name.replace(/\s+/g,'');
+                                document.write(`
+                                <div class="col-md-6">
+                                    <label class="form-label w-100">${f.label}</label>
+                                    <div class="toggle-group-3d" role="group">
+                                        <div>
+                                            <input type="radio" class="btn-check toggle-yes" name="${f.name}" id="${idBase}Yes" value="Yes">
+                                            <label class="toggle-btn-3d yes-btn" for="${idBase}Yes">
+                                                YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <input type="radio" class="btn-check toggle-no" name="${f.name}" id="${idBase}No" value="No">
+                                            <label class="toggle-btn-3d" for="${idBase}No">
+                                                <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>`);
+                            });
+                        </script>
+                        <div class="col-md-12">
+                            <label class="form-label">WB Remarks</label>
+                            <textarea class="form-control" name="WB Remarks" id="wbRemarks" rows="2"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4 pt-4 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <button type="button" class="btn btn-outline-light px-4 rounded-pill fw-medium" onclick="prevStep()"><span class="material-icons align-middle me-1">arrow_back</span> Previous</button>
+                        <button type="button" class="btn btn-primary px-4 shadow-sm rounded-pill fw-medium" onclick="nextStep()">Next <span class="material-icons align-middle ms-1">arrow_forward</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: PIT TYPE / LIFT HEALTH -->
+            <div class="card glass-card mb-4 form-step d-none" id="step-4">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2">
+                    <h5 class="fw-semibold text-white"><span class="material-icons align-middle me-2 text-primary">car_repair</span>Section 4: Pit Type / Lift Health</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <script>
+                            const pitYesNoFields = [
+                                {label: 'Rear Slip Plate Condition', name: 'Pit Rear Slip Plate Condition'},
+                                {label: 'Rear Slip Plate Cleaning', name: 'Pit Rear Slip Plate Cleaned'},
+                                {label: 'Rear Turn Table Cleaning', name: 'Pit Rear TT Cleaned'},
+                                {label: 'Turn Table Leveling', name: 'Pit TT Leveling'},
+                                {label: 'Lift Water Level', name: 'Pit Water Level'},
+                                {label: 'Lift Oil Level', name: 'Pit Oil Level'},
+                                {label: 'Lift Voltage', name: 'Pit Voltage'}
+                            ];
+                            pitYesNoFields.forEach(f => {
+                                const idBase = f.name.replace(/\s+/g,'');
+                                document.write(`
+                                <div class="col-md-4">
+                                    <label class="form-label w-100">${f.label}</label>
+                                    <div class="toggle-group-3d" role="group">
+                                        <div>
+                                            <input type="radio" class="btn-check toggle-yes" name="${f.name}" id="${idBase}Yes" value="Yes">
+                                            <label class="toggle-btn-3d yes-btn" for="${idBase}Yes">
+                                                YES <span class="icon-circle"><i class="material-icons">check</i></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <input type="radio" class="btn-check toggle-no" name="${f.name}" id="${idBase}No" value="No">
+                                            <label class="toggle-btn-3d" for="${idBase}No">
+                                                <span class="icon-circle"><i class="material-icons">close</i></span> NO
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>`);
+                            });
+                        </script>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Turn Table Condition</label>
+                            <select class="form-select dynamic-select" name="Pit TT Condition" id="pitTTCond" data-target="pitTTRemWrap">
+                                <option value="" class="bg-dark text-light">Select...</option><option value="Good" class="bg-dark text-light">Good</option><option value="Has Issue" class="bg-dark text-light">Has Issue</option>
+                            </select>
+                            <div id="pitTTRemWrap" class="mt-3 d-none">
+                                <input type="text" class="form-control form-control-sm" name="Pit TT Remarks" id="pitTTRemarks" placeholder="Remarks...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Site/Machinery/Service Bay Issues</label>
+                            <textarea class="form-control" name="Pit Site Issues" id="pitSiteIssues" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">General Remarks</label>
+                            <textarea class="form-control" name="Pit Remarks" id="pitRemarks" rows="2"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4 pt-4 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <button type="button" class="btn btn-outline-light px-4 rounded-pill fw-medium" onclick="prevStep()"><span class="material-icons align-middle me-1">arrow_back</span> Previous</button>
+                        <button type="button" class="btn btn-success px-4 shadow-sm rounded-pill fw-medium" onclick="handlePreview()">
+                            <span class="material-icons align-middle me-1">visibility</span> Preview & Generate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true" data-bs-backdrop="static">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg bg-dark">
+          <div class="modal-header glass-header border-0">
+            <h5 class="modal-title fw-semibold text-white" id="previewModalLabel">Print Preview - AMC Report</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body bg-black bg-opacity-25 p-4 d-flex justify-content-center" id="modalBody">
+            <!-- Template HTML injected here via JS -->
+            <?!= include('Template'); ?>
+          </div>
+          <div class="modal-footer glass-header border-0">
+            <button type="button" class="btn btn-outline-light rounded-pill fw-medium" data-bs-dismiss="modal">Edit Data</button>
+            <button type="button" class="btn btn-success px-4 rounded-pill shadow-sm fw-medium" onclick="submitForm()">
+                <span class="material-icons align-middle me-1">cloud_upload</span> Submit & Save PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="appToast" class="toast align-items-center text-bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body fw-medium" id="toastMsg">Action successful.</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap & Client JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <?!= include('JavaScript'); ?>
+</body>
+</html>

@@ -1,2 +1,0 @@
-# AMCFormApp
-AMC Reviewing App
